@@ -13,12 +13,12 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("static")))
 	for _, name := range []string{"arduino", "java", "go", "scala"} {
 		room := newRoom(name)
-		http.Handle("/chat"+name, room)
+		http.Handle("/chat/"+name, room)
 		go room.run()
 	}
-
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+	log.Printf("started chat server on port 8080")
 }
