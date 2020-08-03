@@ -39,7 +39,7 @@ func newRoom(topic string) *Room {
 func (room *Room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	conn, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
-		log.Fatal("serving http failed ", err)
+		log.Println("serving http failed ", err)
 		return
 	}
 
@@ -50,9 +50,9 @@ func (room *Room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	room.register <- client
-	defer func() {
-		room.unregister <- client
-	}()
+
+	// Allow collection of memory referenced by the caller by doing all work in
+	// new goroutines.
 	go client.writePump()
 	go client.readPump()
 }
@@ -65,9 +65,11 @@ func (room *Room) run() {
 			log.Printf("new client in room %v", room.topic)
 			room.clients[client] = true
 		case client := <-room.unregister:
+			if _, ok := room.clients[client]; ok {
+				delete(room.clients, client)
+				close(client.send)
+			}
 			log.Printf("client leaving room %v", room.topic)
-			delete(room.clients, client)
-			close(client.send)
 		case msg := <-room.broadcast:
 			for client := range room.clients {
 				select {
