@@ -1,5 +1,7 @@
 # Golang Chatrooms Example
 
+*This project adapted from [the gorilla websocket chat example](https://github.com/gorilla/websocket/tree/master/examples/chat) to support multiple chat rooms*
+
 This application shows how to use the
 [websocket](https://github.com/gorilla/websocket) package to implement a simple
 web chat application with multiple rooms
