@@ -88,4 +88,8 @@ network.
 
 ## Frontend
 
-The frontend code is in the [static/ directory](https://github.com/ibraheemdev/go-chatrooms-example/tree/master/static). It is a simple jquery and bootstrap ui in which you can join, leave, or send messages on a chat room of your choice.
+The frontend code is in home.html.
+
+When the client clicks 'join room', the script checks for websocket functionality in the browser. If websocket functionality is available, then the script opens a connection to the server and registers a callback to handle messages from the server. The callback appends the message to the chat log. Leaving a room closes the websocket connection, and removes all messages from the log.
+
+The form handler writes the user input to the websocket and clears the input field.
