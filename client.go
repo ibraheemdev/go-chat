@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -47,6 +49,15 @@ type Client struct {
 	send chan []byte
 }
 
+// Message represents a single chat message
+type Message struct {
+	// The actual text of the message
+	Body string `json:"body"`
+
+	// The name of the client who sent the message
+	Sender string `json:"sender"`
+}
+
 // readPump pumps messages from the websocket connection to the room.
 //
 // The application runs readPump in a per-connection goroutine. The application
@@ -61,12 +72,19 @@ func (c *Client) readPump() {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, message, err := c.conn.ReadMessage()
+		message := &Message{}
+		err := c.conn.ReadJSON(message)
 		if err != nil {
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.room.broadcast <- message
+		// The message sent by the client is now decoded into the message variable
+		// This is when you can perform database calls, validations, or other logic
+		data, err := json.Marshal(message)
+		if err != nil {
+			log.Print(fmt.Sprint("Error while marshalling message:", err))
+		}
+		data = bytes.TrimSpace(bytes.Replace(data, newline, space, -1))
+		c.room.broadcast <- data
 	}
 }
 

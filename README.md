@@ -1,6 +1,6 @@
 # Golang Chatrooms Example
 
-*This project adapted from [the gorilla websocket chat example](https://github.com/gorilla/websocket/tree/master/examples/chat) to support multiple chat rooms*
+*This project adapted from [the gorilla websocket chat example](https://github.com/gorilla/websocket/tree/master/examples/chat) to support multiple chat rooms and JSON websocket message data*
 
 This application shows how to use the
 [websocket](https://github.com/gorilla/websocket) package to implement a simple
@@ -36,7 +36,7 @@ has channels for registering clients, unregistering clients and broadcasting
 messages. A `Client` has a buffered channel of outbound messages. One of the
 client's goroutines reads messages from this channel and writes the messages to
 the websocket. The other client goroutine reads messages from the websocket and
-sends them to the hub.
+sends them to the room.
 
 ### Room 
 
@@ -69,11 +69,13 @@ client to be unregistered using a defer statement.
 
 Next, the HTTP handler starts the client's `writePump` method as a goroutine.
 This method transfers messages from the client's send channel to the websocket
-connection. The writer method exits when the channel is closed by the hub or
+connection. The writer method exits when the channel is closed by the room or
 there's an error writing to the websocket connection.
 
 Finally, the HTTP handler calls the client's `readPump` method. This method
-transfers inbound messages from the websocket to the hub.
+reads the messages into a Message struct. This is when database calls or 
+other logic should be handled. It then marshals it and transfers inbound messages 
+from the websocket to the room.
 
 WebSocket connections [support one concurrent reader and one concurrent
 writer](https://godoc.org/github.com/gorilla/websocket#hdr-Concurrency). The
