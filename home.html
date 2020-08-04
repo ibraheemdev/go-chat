@@ -7,31 +7,36 @@
 		window.onload = () => {
 			var conn;
 			var log = document.getElementById("log");
-			var message = document.getElementById("message");
+			var msg = document.getElementById("msg");
 			document.getElementById("join-room").addEventListener("submit", (evt) => {
-				evt.preventDefault();
-				console.log("ASddsaasd");
-				room = document.getElementById("chatroom").value;
-				conn = new WebSocket("ws://0.0.0.0:8080/chat/" + room);
-				conn.onmessage = (evt) =>
-					log.insertAdjacentHTML("beforeend", `<div>${evt.data}</div>`);
-				document.getElementById("join-room").style.display = "none";
-				document.getElementById("send-message").style.display = "block";
-				document.getElementById("room-name").textContent = room + " chatroom";
+				if (window["WebSocket"]) {
+					evt.preventDefault();
+					console.log("ASddsaasd");
+					room = document.getElementById("chatroom").value;
+					conn = new WebSocket("ws://0.0.0.0:8080/chat/" + room);
+					conn.onmessage = (evt) =>
+						log.insertAdjacentHTML("beforeend", `<div>${evt.data}</div>`);
+					document.getElementById("join-room").style.display = "none";
+					document.getElementById("send-msg").style.display = "block";
+					document.getElementById("room-name").textContent = room + " chatroom";
+				} else {
+					document.getElementById("room-name").textContent =
+						"Your browser does not support WebSockets."
+				}
 			});
-			document.getElementById("send-message").addEventListener("submit", (evt) => {
+			document.getElementById("send-msg").addEventListener("submit", (evt) => {
 				evt.preventDefault();
-				if (!message.value) return;
+				if (!msg.value) return;
 				if (!conn) return;
-				conn.send(message.value);
-				message.focus();
-				message.value = "";
+				conn.send(msg.value);
+				msg.focus();
+				msg.value = "";
 			});
 			document.getElementById("leave-room").addEventListener("click", () => {
 				conn.close();
 				document.getElementById("room-name").textContent = "";
 				while (log.firstChild) log.removeChild(log.firstChild);
-				document.getElementById("send-message").style.display = "none";
+				document.getElementById("send-msg").style.display = "none";
 				document.getElementById("join-room").style.display = "block";
 			}, false);
 		};
@@ -50,11 +55,11 @@
 		</select>
 		<button type="submit">Join Chatroom</button>
 	</form>
-	<form id="send-message" style="display: none;">
+	<form id="send-msg" style="display: none;">
 		<h2 id="room-name"></h2>
 		<div id="log"></div>
-		<input type="text" placeholder="Enter your message..." id="message" />
-		<input type="submit" value="Send message" />
+		<input type="text" placeholder="Enter your msg..." id="msg" />
+		<input type="submit" value="Send msg" />
 		<button type="button" id="leave-room">Leave room</button>
 	</form>
 </body>
