@@ -13,7 +13,9 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("static")))
 	for _, name := range []string{"arduino", "java", "go", "scala"} {
 		room := newRoom(name)
-		http.Handle("/chat/"+name, room)
+		http.HandleFunc("/chat/"+name, func(w http.ResponseWriter, r *http.Request) {
+			serveWs(room, w, r)
+		})
 		go room.run()
 	}
 	err := http.ListenAndServe(":8080", nil)

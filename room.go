@@ -6,7 +6,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 )
 
 // Room represents a single chat room
@@ -34,27 +33,6 @@ func newRoom(topic string) *Room {
 		clients:    make(map[*Client]bool),
 		topic:      topic,
 	}
-}
-
-func (room *Room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	conn, err := upgrader.Upgrade(w, req, nil)
-	if err != nil {
-		log.Println("serving http failed ", err)
-		return
-	}
-
-	client := &Client{
-		conn: conn,
-		send: make(chan []byte, 256),
-		room: room,
-	}
-
-	room.register <- client
-
-	// Allow collection of memory referenced by the caller by doing all work in
-	// new goroutines.
-	go client.writePump()
-	go client.readPump()
 }
 
 func (room *Room) run() {
