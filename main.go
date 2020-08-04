@@ -5,8 +5,20 @@ import (
 	"net/http"
 )
 
+func serveHome(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	if r.URL.Path != "/" {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, "home.html")
+}
+
 func main() {
-	http.Handle("/", http.FileServer(http.Dir("static")))
 	for _, name := range []string{"arduino", "java", "go", "scala"} {
 		room := newRoom(name)
 		http.HandleFunc("/chat/"+name, func(w http.ResponseWriter, r *http.Request) {
@@ -14,9 +26,9 @@ func main() {
 		})
 		go room.run()
 	}
+	http.HandleFunc("/", serveHome)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-	log.Printf("started chat server on port 8080")
 }
