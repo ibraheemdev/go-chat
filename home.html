@@ -2,106 +2,61 @@
 <html lang="en">
 
 <head>
-	<meta charset="utf-8">
 	<title>Golang WebSocket Chatrooms</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="">
-
-	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-		integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-		crossorigin="anonymous"></script>
-	<script>
-		var wsocket, $username, $message, $chatWindow, room;
-
-		const onMessageReceived = (evt) => {
-			var msg = JSON.parse(evt.data);
-			var $messageLine = $(
-				'<tr><td class="received">' + Date(msg.received) + "-"
-				+ '</td><td class="user label label-info">' + msg.sender + ":"
-				+ '</td><td class="message badge">' + msg.message
-				+ '</td></tr>'
-			);
-			$chatWindow.append($messageLine);
-			console.log(msg)
-		}
-		const sendMessage = () => {
-			if (!$message.val()) return
-			var msg = {
-				message: $message.val(), sender: $username.val(), received: Date.now()
-			};
-			wsocket.send(JSON.stringify(msg));
-			$message.val('').focus();
-		}
-
-		const connectToChatserver = () => {
-			room = $('#chatroom option:selected').val();
-			wsocket = new WebSocket("ws://0.0.0.0:8080/chat/" + room);
-			wsocket.onmessage = onMessageReceived;
-		}
-
-		const leaveRoom = () => {
-			wsocket.close();
-			$chatWindow.empty();
-			$('#chat-wrapper').hide();
-			$('#signin').show();
-		}
-
-		$(document).ready(() => {
-			$username = $('#username');
-			$message = $('#message');
-			$chatWindow = $('#response');
-			$('#chat-wrapper').hide();
-
-			$('#enterRoom').click((evt) => {
+	<script type="text/javascript">
+		window.onload = () => {
+			var conn;
+			var log = document.getElementById("log");
+			var message = document.getElementById("message");
+			document.getElementById("join-room").addEventListener("submit", (evt) => {
 				evt.preventDefault();
-				connectToChatserver();
-				$('#chat-wrapper h2').text(room + 'Chat Room' + ":" + $username.val());
-				$('#signin').hide();
-				$('#chat-wrapper').show();
+				console.log("ASddsaasd");
+				room = document.getElementById("chatroom").value;
+				conn = new WebSocket("ws://0.0.0.0:8080/chat/" + room);
+				conn.onmessage = (evt) =>
+					log.insertAdjacentHTML("beforeend", `<div>${evt.data}</div>`);
+				document.getElementById("join-room").style.display = "none";
+				document.getElementById("send-message").style.display = "block";
+				document.getElementById("room-name").textContent = room + " chatroom";
 			});
-			$('#sendMessage').submit((evt) => {
+			document.getElementById("send-message").addEventListener("submit", (evt) => {
 				evt.preventDefault();
-				sendMessage()
+				if (!message.value) return;
+				if (!conn) return;
+				conn.send(message.value);
+				message.focus();
+				message.value = "";
 			});
-
-			$('#leave-room').click(() => leaveRoom());
-		});
+			document.getElementById("leave-room").addEventListener("click", () => {
+				conn.close();
+				document.getElementById("room-name").textContent = "";
+				while (log.firstChild) log.removeChild(log.firstChild);
+				document.getElementById("send-message").style.display = "none";
+				document.getElementById("join-room").style.display = "block";
+			}, false);
+		};
 	</script>
 </head>
 
 <body>
 
-	<div id="signin">
-		<form>
-			<h2>Chat sign in</h2>
-			<label for="username">Username</label>
-			<input type="text" placeholder="username" id="username">
-			<div>
-				<label>Chatroom</label>
-				<select size="1" id="chatroom">
-					<option>arduino</option>
-					<option>java</option>
-					<option>go</option>
-					<option>scala</option>
-				</select>
-			</div>
-			<button type="submit" id="enterRoom">Sign in</button>
-		</form>
-	</div>
-	<div id="chat-wrapper">
-		<form id="sendMessage">
-			<h2></h2>
-			<table id="response"></table>
-			<fieldset>
-				<legend>Enter your message..</legend>
-				<div>
-					<input type="text" placeholder="Your message..." id="message" />
-					<input type="submit" value="Send message" />
-					<button type="button" id="leave-room">Leave room</button>
-				</div>
-			</fieldset>
-		</form>
-	</div>
+	<form id="join-room">
+		<h2>Chat Sign In</h2>
+		<select size="1" id="chatroom">
+			<option>arduino</option>
+			<option>java</option>
+			<option>go</option>
+			<option>scala</option>
+		</select>
+		<button type="submit">Join Chatroom</button>
+	</form>
+	<form id="send-message" style="display: none;">
+		<h2 id="room-name"></h2>
+		<div id="log"></div>
+		<input type="text" placeholder="Enter your message..." id="message" />
+		<input type="submit" value="Send message" />
+		<button type="button" id="leave-room">Leave room</button>
+	</form>
 </body>
 
 </html>
