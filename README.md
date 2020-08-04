@@ -1,4 +1,4 @@
-# Chat Example
+# Golang Chatrooms Example
 
 This application shows how to use the
 [websocket](https://github.com/gorilla/websocket) package to implement a simple
@@ -14,8 +14,9 @@ Once you have Go up and running, you can download, build and run the example
 using the following commands.
 
     $ go get github.com/gorilla/websocket
-    $ cd `go list -f '{{.Dir}}' github.com/gorilla/websocket/examples/chat`
-    $ go run *.go
+    $ git clone https://github.com/ibraheemdev/go-chatrooms-example
+    $ cd go-chatrooms-example
+    $ go run .
 
 To use the chat example, open http://localhost:8080/ in your browser.
 
@@ -85,4 +86,4 @@ network.
 
 ## Frontend
 
-The frontend code is in the [static/ directory](https://github.com/gorilla/websocket/blob/master/examples/chat/home.html). It is a simple jquery and bootstrap ui in which you can join, leave, or send messages on a chat room of your choice.
+The frontend code is in the [static/ directory](https://github.com/ibraheemdev/go-chatrooms-example/tree/master/static). It is a simple jquery and bootstrap ui in which you can join, leave, or send messages on a chat room of your choice.
