@@ -26,8 +26,8 @@ To use the chat example, open http://localhost:8080/ in your browser.
 
 The server application defines two types, `Client` and `Room`. The server
 creates an instance of the `Client` type for each websocket connection. A
-`Client` acts as an intermediary between the websocket connection and a multiple
-instances of the `Room` type. A `Room` maintains a set of registered clients and
+`Client` acts as an intermediary between the websocket connection and a `Room` instance. 
+A `Room` maintains a set of registered clients and
 broadcasts messages to the clients.
 
 The application runs one goroutine for each `Room` and two goroutines for each
@@ -42,20 +42,20 @@ sends them to the hub.
 
 The code for the `Room` type is in
 [room.go](https://github.com/ibraheemdev/go-chat/blob/master/room.go). 
-The application's `main` function starts the hub's `run` method as a goroutine.
-Clients send requests to the hub using the `register`, `unregister` and
+The application's `main` function starts each room's`run` method as a goroutine.
+Clients send requests to the room using the `register`, `unregister` and
 `broadcast` channels.
 
 The room registers clients by adding the client pointer as a key in the
 `clients` map. The map value is always true.
 
 The unregister code is a little more complicated. In addition to deleting the
-client pointer from the `clients` map, the hub closes the clients's `send`
+client pointer from the `clients` map, the room closes the clients's `send`
 channel to signal the client that no more messages will be sent to the client.
 
 The room handles messages by looping over the registered clients and sending the
 message to the client's `send` channel. If the client's `send` buffer is full,
-then the room assumes that the client is dead or stuck. In this case, the hub
+then the room assumes that the client is dead or stuck. In this case, the room
 unregisters the client and closes the websocket.
 
 ### Client
@@ -64,7 +64,7 @@ The code for the `Client` type is in [client.go](https://github.com/gorilla/webs
 
 The `serveWs` function is registered by the application's `main` function as
 an HTTP handler. The handler upgrades the HTTP connection to the WebSocket
-protocol, creates a client, registers the client with the hub and schedules the
+protocol, creates a client, registers the client with the room and schedules the
 client to be unregistered using a defer statement.
 
 Next, the HTTP handler starts the client's `writePump` method as a goroutine.
