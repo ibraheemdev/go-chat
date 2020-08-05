@@ -1,4 +1,4 @@
-# Golang Chatrooms Example
+# Golang Chatrooms Example: Independent Rooms
 
 *This project adapted from [the gorilla websocket chat example](https://github.com/gorilla/websocket/tree/master/examples/chat) to support multiple chat rooms and JSON websocket message data*
 

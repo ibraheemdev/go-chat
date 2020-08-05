@@ -1,35 +1,28 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
-var addr = flag.String("addr", ":8080", "http service address")
-
-func serveHome(w http.ResponseWriter, r *http.Request) {
+func serveHome(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	log.Println(r.URL)
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	http.ServeFile(w, r, "home.html")
 }
 
 func main() {
-	flag.Parse()
+	router := httprouter.New()
+	router.GET("/", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		serveHome(w, r, ps)
+	})
 	hub := newHub()
 	go hub.run()
-	http.HandleFunc("/", serveHome)
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(hub, w, r)
+	router.GET("/chat/:room", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		serveWs(hub, w, r, ps)
 	})
-	err := http.ListenAndServe(*addr, nil)
+	err := http.ListenAndServe(":8080", router)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

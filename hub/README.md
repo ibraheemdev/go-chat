@@ -1,4 +1,6 @@
-# Chat Example
+# Golang Chatrooms Example: Hub
+
+*This project adapted from [the gorilla websocket chat example](https://github.com/gorilla/websocket/tree/master/examples/chat) to support multiple chat rooms and JSON websocket message data*
 
 This application shows how to use the
 [websocket](https://github.com/gorilla/websocket) package to implement a simple
@@ -24,8 +26,8 @@ To use the chat example, open http://localhost:8080/ in your browser.
 The server application defines two types, `Client` and `Hub`. The server
 creates an instance of the `Client` type for each websocket connection. A
 `Client` acts as an intermediary between the websocket connection and a single
-instance of the `Hub` type. The `Hub` maintains a set of registered clients and
-broadcasts messages to the clients.
+instance of the `Room` type. The `Hub` maintains a set of registered rooms and
+broadcasts messages to the clients in the room the message was sent to.
 
 The application runs one goroutine for the `Hub` and two goroutines for each
 `Client`. The goroutines communicate with each other using channels. The `Hub`
@@ -43,17 +45,13 @@ The application's `main` function starts the hub's `run` method as a goroutine.
 Clients send requests to the hub using the `register`, `unregister` and
 `broadcast` channels.
 
-The hub registers clients by adding the client pointer as a key in the
-`clients` map. The map value is always true.
+When a client registers to the hub, it checks if the room sent by the client exists in the `rooms` map. If it doesn't the hub registers the room by adding the room's name as a key in the map. The room then registers the client by adding the client pointer as a key in the `clients` map. The map value is always true.
 
 The unregister code is a little more complicated. In addition to deleting the
 client pointer from the `clients` map, the hub closes the clients's `send`
-channel to signal the client that no more messages will be sent to the client.
+channel to signal the client that no more messages will be sent to the client. If the room's `client` map is empty, then the room is deleted from the hub's `rooms` map.
 
-The hub handles messages by looping over the registered clients and sending the
-message to the client's `send` channel. If the client's `send` buffer is full,
-then the hub assumes that the client is dead or stuck. In this case, the hub
-unregisters the client and closes the websocket.
+The hub handles messages by looping over the registered clients in the room and sending the message to the client's `send` channel. If the client's `send` buffer is full, then the hub assumes that the client is dead or stuck. In this case, the hub unregisters the client and closes the websocket, and closes the room if it is empty.
 
 ### Client
 
@@ -61,7 +59,7 @@ The code for the `Client` type is in [client.go](https://github.com/gorilla/webs
 
 The `serveWs` function is registered by the application's `main` function as
 an HTTP handler. The handler upgrades the HTTP connection to the WebSocket
-protocol, creates a client, registers the client with the hub and schedules the
+protocol, creates a client, registers the client with the room and schedules the
 client to be unregistered using a defer statement.
 
 Next, the HTTP handler starts the client's `writePump` method as a goroutine.
@@ -69,8 +67,7 @@ This method transfers messages from the client's send channel to the websocket
 connection. The writer method exits when the channel is closed by the hub or
 there's an error writing to the websocket connection.
 
-Finally, the HTTP handler calls the client's `readPump` method. This method
-transfers inbound messages from the websocket to the hub.
+Finally, the HTTP handler calls the client's `readPump` method. This method decodes messages into a Message struct, and transfers them from the websocket to the hub.
 
 WebSocket connections [support one concurrent reader and one concurrent
 writer](https://godoc.org/github.com/gorilla/websocket#hdr-Concurrency). The
@@ -85,18 +82,8 @@ network.
 
 ## Frontend
 
-The frontend code is in [home.html](https://github.com/gorilla/websocket/blob/master/examples/chat/home.html).
+The frontend code is in home.html.
 
-On document load, the script checks for websocket functionality in the browser.
-If websocket functionality is available, then the script opens a connection to
-the server and registers a callback to handle messages from the server. The
-callback appends the message to the chat log using the appendLog function.
+When the client clicks 'join room', the script checks for websocket functionality in the browser. If websocket functionality is available, then the script opens a connection to the server and registers a callback to handle messages from the server. The callback appends the message to the chat log. Leaving a room closes the websocket connection, and removes all messages from the log.
 
-To allow the user to manually scroll through the chat log without interruption
-from new messages, the `appendLog` function checks the scroll position before
-adding new content. If the chat log is scrolled to the bottom, then the
-function scrolls new content into view after adding the content. Otherwise, the
-scroll position is not changed.
-
-The form handler writes the user input to the websocket and clears the input
-field.
+The form handler writes the user input to the websocket and clears the input field.
