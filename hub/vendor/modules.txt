@@ -1,3 +1,6 @@
 # github.com/gorilla/websocket v1.4.2
 ## explicit
 github.com/gorilla/websocket
+# github.com/julienschmidt/httprouter v1.3.0
+## explicit
+github.com/julienschmidt/httprouter
