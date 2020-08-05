@@ -64,8 +64,8 @@ func (c *Client) readPump() {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		message := &Message{}
-		err := c.conn.ReadJSON(message)
+		message := Message{}
+		err := c.conn.ReadJSON(&message)
 		if err != nil {
 			break
 		}
