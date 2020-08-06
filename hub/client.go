@@ -66,6 +66,7 @@ func (c *Client) readPump() {
 	for {
 		message := Message{}
 		err := c.conn.ReadJSON(&message)
+		message.Room = c.room
 		if err != nil {
 			break
 		}

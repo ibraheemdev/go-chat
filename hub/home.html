@@ -33,7 +33,7 @@
 				evt.preventDefault();
 				if (!msg.value) return;
 				if (!conn) return;
-				conn.send(JSON.stringify({ body: msg.value, room: room.value.toLowerCase(), sender: usr.value }));
+				conn.send(JSON.stringify({ body: msg.value, sender: usr.value }));
 				msg.focus();
 				msg.value = ''
 			});
